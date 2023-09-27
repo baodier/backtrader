@@ -39,18 +39,18 @@ class PositionA(object):
 
     def __str__(self):
         items = list()
-        items.append('--- PositionA Begin')
-        items.append('- Size: {}'.format(self.size))
-        items.append('- HoldSize: {}'.format(self.holdsize))
-        items.append('- HoldDate: {}'.format(self.holddate))
-        items.append('- Price: {}'.format(self.price))
-        items.append('- Price orig: {}'.format(self.price_orig))
-        items.append('- Closed: {}'.format(self.upclosed))
-        items.append('- Opened: {}'.format(self.upopened))
-        items.append('- Adjbase: {}'.format(self.adjbase))
-        items.append('--- Position End')
-        return '\n'.join(items)
-
+        # items.append('--- PositionA Begin')
+        items.append(' Size: {}'.format(self.size))
+        items.append(' HoldSize: {}'.format(self.holdsize))
+        items.append(' HoldDate: {}'.format(self.holddate))
+        items.append(' Price: {}'.format(self.price))
+        items.append(' Price orig: {}'.format(self.price_orig))
+        items.append(' Closed: {}'.format(self.upclosed))
+        items.append(' Opened: {}'.format(self.upopened))
+        items.append(' Adjbase: {}'.format(self.adjbase))
+        # items.append('--- Position End')
+        # return '\n'.join(items)
+        return ''.join(items)
     def __init__(self, size=0, price=0.0, holdsize=0, holddate=None):
         self.size = size
         self.holdsize = holdsize
@@ -136,11 +136,22 @@ class PositionA(object):
             opened, closed = size, 0
             self.size += size
             self.price = (self.price * oldsize + size * price) / self.size
+            # 如果是买入的，需要修改holdsize和holddate
+            if self.holddate is None:
+                self.holddate = dt.date()
+                self.holdsize = size
+            else:
+                assert self.holddate <= dt.date(), "holddate {} cannot be larger than execute date {}".format(self.holddate, dt.date())
+                if self.holddate == dt.date():
+                    self.holdsize += size
+                else:
+                    self.holddate = dt.date()
+                    self.holdsize = size
         else:
             if self.holddate is None:
                 activesize = oldsize
             else:
-                activesize = oldsize if dt > self.holddate else oldsize - self.holdsize
+                activesize = oldsize if dt.date() > self.holddate else oldsize - self.holdsize
             # self.price = self.price
             if activesize + size >= 0:
                 opened, closed = 0, size
