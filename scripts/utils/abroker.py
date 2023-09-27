@@ -16,15 +16,21 @@ from backtrader.brokers.bbroker import BackBroker
 
 
 class ABroker(BackBroker):
-    # def __init__(self):
-    #     self.positions = collections.defaultdict(PositionA)
-    # def _execute(self, order, ago=None, price=None, cash=None, position=None,
-    #              dtcoc=None):
-    #     print('hhhhhhhhhhhhhhhhhhhhhh')
-    #     return super(ABroker, self)._execute(order=order, ago=ago, price=price, cash=cash, position=position, dtcoc=dtcoc)
     def init(self):
         super(ABroker, self).init()
         self.positions = collections.defaultdict(PositionA)
+
+    def next(self):
+        # 修改每一个position的holdsize，for A股
+        for data, pos in self.positions.items():
+            if pos:
+                dt0 = data.datetime.datetime()
+                if pos.holddate:
+                    if dt0.date() > pos.holddate:
+                        pos.holddate = None
+                        pos.holdsize = 0
+
+        super(ABroker, self).next()
 
     def _execute(self, order, ago=None, price=None, cash=None, position=None,
                  dtcoc=None):
@@ -159,6 +165,8 @@ class ABroker(BackBroker):
 
         if ago is None:
             # return cash from pseudo-execution
+            if closed == 0 and opened == 0:
+                return -1
             return cash
 
         execsize = closed + opened
@@ -192,3 +200,4 @@ class ABroker(BackBroker):
             self.notify(order)
             self._ococheck(order)
             self._bracketize(order, cancel=True)
+
