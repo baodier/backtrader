@@ -31,20 +31,22 @@ class RandomStrategy(bt.Strategy):
             self.log('订单 Canceled/Margin/Rejected')
 
     def next(self):
+        self.log(' ---------------------  new next begin ---------------------')
+        self.log('open = {}, close = {}'.format(self.data.open[0], self.data.close[0]))
         if self.data.close[0] > self.data.open[0]:  # 当前收盘价高于开盘价
-            self.log('will buy, pos={}'.format(self.getposition().size))
+            self.log('will buy, pos={}, position_a={}'.format(self.getposition().size, self.getposition()))
             self.buy(size=100)  # 买入操作
         else:
             pos = self.getposition().size
             sell_size = 100 if pos >= 100 else pos
             # print('sell_size={}'.format(sell_size))
             if sell_size > 0:
-                self.log('will sell, pos={}'.format(self.getposition().size))
+                self.log('will sell, pos={}, position_a={}'.format(self.getposition().size, self.getposition()))
                 self.sell(size=sell_size)  # 卖出操作
             else:
                 self.log('no position, cannot sell')
 
-
+        self.log(' ---------------------  new next end ---------------------')
 
 cerebro = bt.Cerebro()  # create a "Cerebro" engine instance
 
@@ -62,8 +64,8 @@ data = bt.feeds.GenericCSVData(
     openinterest=-1,  # 无未平仓量列.(openinterest是期货交易使用的)
     dtformat=('%Y-%m-%d %H:%M:%S'),  # 日期格式
     # tmformat=('%H:%M:%S'),  # 时间格式
-    fromdate=datetime(2023, 7, 1),  # 起始日
-    todate=datetime(2023, 7, 5),
+    fromdate=datetime(2023, 1, 3),  # 起始日
+    todate=datetime(2023, 1, 5),
     timeframe=bt.TimeFrame.Minutes
 )  # 结束日
 
@@ -72,4 +74,4 @@ cerebro.adddata(data)
 cerebro.setbroker(ABroker())
 cerebro.addstrategy(RandomStrategy)  # Add the trading strategy
 cerebro.run()  # run it all
-cerebro.plot()  # and plot it with a single command
+# cerebro.plot()  # and plot it with a single command
